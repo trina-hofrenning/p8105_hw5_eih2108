@@ -14,9 +14,9 @@ library(broom)
 # Problem 2
 This zip file contains data from a longitudinal study that included a control arm and an experimental arm. Data for each participant is included in a separate file, and file names include the subject ID and arm. Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time:
 
-- !Start with a dataframe containing all file names; the list.files function will help
-- !Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
-- !Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
+- Start with a dataframe containing all file names; the list.files function will help
+- Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
+- Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
 - Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
 
 ```{r, warning=FALSE, message=FALSE}
@@ -99,7 +99,7 @@ mean_all %>%
   labs(x = "True Mean", y = "Power (Proportion Null was Rejected)")
 ```
 
-When the true mean increases, the power increases
+When the true mean increases, the power increases. The rate of power increases tapers off as it approaches 1.
 
 ```{r}
 rej_est <- mean_all %>% 
@@ -117,17 +117,12 @@ ggplot(full_est, aes(x = mean, y = ave_est)) +
   geom_line(data = full_est, aes(color = "red")) +
   geom_line(data = rej_est, aes(color = "blue")) +
   scale_color_manual(name = " ", values = c("red" = "red", "blue" = "blue"),
-                     labels = c('All Estimates','Rejected Estimates')) +
+                     labels = c('Rejected Estimates','All Estimates')) +
   geom_point(data = full_est, color = "red") +
   geom_point(data = rej_est, color = "blue") +
   scale_x_continuous(limits = c(1,6), breaks = seq(1,6,1)) +
-  labs(x = "True Mean", y = "Average Estimated Mean", title = "All vs. Rejected Estimates")
+  labs(x = "True Mean", y = "Average Estimated Mean", title = "All and Rejected Mean Estimates")
 ```
 
-
-
-
-
-
-
+For all estimates, the true mean is approximately equal to the average estimated mean. But, for rejected estimates, this is only the case for means larger than 4-- for those less than 4, the average estimated mean is larger than the true mean. This is because the power of the test is smaller when the true mean is smaller. 
 
