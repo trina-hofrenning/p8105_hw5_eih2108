@@ -8,6 +8,7 @@ output: html_document
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(purrr)
+library(broom)
 ```
 
 # Problem 2
@@ -40,6 +41,7 @@ ggplot(files, aes(x = week, y = value, group = ID, color = control_arm)) +
 
 As seen in the plot above, the experimental arm has a higher average value than the control arm. Additionally, the experimental arm's values rise as the weeks go on, whereas the control arms appear steady on average.
 
+
 # Problem 3
 When designing an experiment or analysis, a common question is whether it is likely that a true effect will be detected – put differently, whether a false null hypothesis will be rejected. The probability that a false null hypothesis is rejected is referred to as power, and it depends on several factors, including: the sample size; the effect size; and the error variance. In this problem, you will conduct a simulation to explore power in a one-sample t-test.
 
@@ -56,6 +58,60 @@ For each dataset, save μ̂
  and the p-value arising from a test of H:μ=0
  using α=0.05
 . Hint: to obtain the estimate and p-value, use broom::tidy to clean the output of t.test.
+
+```{r}
+sim_mean_sd = function(n, mu = 0, sigma = 5) {
+  
+  sim_data = tibble(
+    x = rnorm(n, mean = mu, sd = sigma),
+  )
+  
+  sim_data |> 
+    summarize(
+      mu_hat = mean(x),
+      sigma_hat = sd(x)
+    )
+}
+
+# my try:
+sim_mean_p = function(n = 30, mu = 0, sigma = 5) {
+  sim_data = tibble(
+    x = rnorm(n, mean = mu, sd = sigma)
+  )
+  
+  test = t.test()
+}
+
+
+# chat:
+# Set the fixed parameters
+n <- 30
+sigma <- 5
+mu <- 0
+alpha <- 0.05
+num_datasets <- 5000
+
+# Generate 5000 datasets, perform t-tests, and store the results in a data frame
+results <- replicate(num_datasets, {
+  dataset <- rnorm(n, mean = mu, sd = sigma)
+  t_test_result <- t.test(dataset, mu = 0)
+  tidy_result <- tidy(t_test_result)
+  data.frame(mu_hat = tidy_result$estimate, p_value = tidy_result$p.value)
+})
+
+
+# Combine the results into a single data frame
+results_df <- results %>% bind_rows()
+
+# Check the summary statistics of mu_hat and p_value
+summary(results_df)
+
+# Count the number of significant results
+significant_results <- results_df %>%
+  filter(p_value < alpha)
+cat("Number of significant results:", nrow(significant_results), "\n")
+```
+
 
 Repeat the above for μ={1,2,3,4,5,6}
 , and complete the following:
