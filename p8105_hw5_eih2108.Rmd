@@ -54,10 +54,16 @@ Set μ=0
 
 x∼Normal[μ,σ]
 
-For each dataset, save μ̂ 
- and the p-value arising from a test of H:μ=0
+For each dataset, save μ̂ and the p-value arising from a test of H:μ=0
  using α=0.05
 . Hint: to obtain the estimate and p-value, use broom::tidy to clean the output of t.test.
+
+```{r}
+x <- tibble(rnorm(30, mean = 0, sd = 5))
+test <- t.test(x)
+test %>% tidy() %>% select(estimate, p.value)
+```
+
 
 ```{r}
 sim_mean_sd = function(n, mu = 0, sigma = 5) {
@@ -72,44 +78,32 @@ sim_mean_sd = function(n, mu = 0, sigma = 5) {
       sigma_hat = sd(x)
     )
 }
+```
 
-# my try:
-sim_mean_p = function(n = 30, mu = 0, sigma = 5) {
-  sim_data = tibble(
-    x = rnorm(n, mean = mu, sd = sigma)
-  )
+
+```{r}
+# Define t-test function w/ set parameter
+t_test <- function(mu = 0) {
+  sample <- tibble(rnorm(n = 30, mean = mu, sd = 5))
   
-  test = t.test()
+  results <- t.test(sample) %>% 
+    broom::tidy() %>% 
+    select(estimate, p.value)
+  
+  results
 }
 
+mean_0 <- expand_grid(mean = 0, 
+                      iteration = 1:5000) %>% 
+  mutate(results = map(mean, t_test)) %>% 
+  unnest(results)
 
-# chat:
-# Set the fixed parameters
-n <- 30
-sigma <- 5
-mu <- 0
-alpha <- 0.05
-num_datasets <- 5000
+mean_all <- expand_grid(mean = 1:6, 
+                        iteration = 1:5000) %>% 
+  mutate(results = map(mean, t_test)) %>% 
+  unnest(results)
 
-# Generate 5000 datasets, perform t-tests, and store the results in a data frame
-results <- replicate(num_datasets, {
-  dataset <- rnorm(n, mean = mu, sd = sigma)
-  t_test_result <- t.test(dataset, mu = 0)
-  tidy_result <- tidy(t_test_result)
-  data.frame(mu_hat = tidy_result$estimate, p_value = tidy_result$p.value)
-})
-
-
-# Combine the results into a single data frame
-results_df <- results %>% bind_rows()
-
-# Check the summary statistics of mu_hat and p_value
-summary(results_df)
-
-# Count the number of significant results
-significant_results <- results_df %>%
-  filter(p_value < alpha)
-cat("Number of significant results:", nrow(significant_results), "\n")
+dim(mean_all)
 ```
 
 
